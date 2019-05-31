@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text editor</title>
+  <base href="./text editor.html">
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+  <link rel="stylesheet" href="./mobile.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+  
+  <meta property="og:url"                content="https://mytee306.github.io/blog/text editor.html" />
+  <meta property="og:type"               content="article" />
+  <meta property="og:title"              content="Text editor" />
+  <meta property="og:description"        content="Read full article at https://mytee306.github.com/blog/text editor.html" />
+  <meta property="og:image"              content="https://imgur.com/G3CgjIK.png" />
+  <meta property="og:image:width" content="125" />
+  <meta property="og:image:height" content="125" />
+  
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="https://mytee306.github.io/blog/text editor.html" />
+  <meta name="twitter:title" content="Text editor" />
+  <meta name="twitter:description" content="Read full article at https://mytee306.github.com/blog/text editor.html" />
+  <meta name="twitter:image" content="https://imgur.com/G3CgjIK.png" />
+</head>
+
+<body class="stackedit">
+  <div class="toc__toggle" tabindex="0">
+    <i class="material-icons">toc</i>
+  </div>
+  
+  <div class="stackedit__left app-hidden">
+    <div class="stackedit__toc">
+      
+<ul>
+<li><a href="#text-editor">Text Editor</a>
+<ul>
+<li><a href="#toolbarcontainer">ToolbarContainer</a></li>
+<li><a href="#editor">Editor</a></li>
+<li><a href="#richstyling">RichStyling</a></li>
+<li><a href="#entities">Entities</a></li>
+<li><a href="#decorators">Decorators</a></li>
+<li><a href="#adapters">adapters</a></li>
+<li><a href="#components">components</a></li>
+<li><a href="#mocks">mocks</a></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+  </div>
+  <div class="stackedit__right">
+    <div class="stackedit__html">
+      <h1 id="text-editor">Text Editor</h1>
+<p><a href="https://github.com/Foleon/maggie/pull/3350">PR</a></p>
+<h2 id="toolbarcontainer">ToolbarContainer</h2>
+<p>Editor controls for <a href="https://draftjs.org/">example</a></p>
+<h2 id="editor">Editor</h2>
+<p><code>import { Editor } from 'draft-js';</code></p>
+<h2 id="richstyling">RichStyling</h2>
+<p><a href="https://draftjs.org/docs/quickstart-rich-styling">docs</a></p>
+<h2 id="entities">Entities</h2>
+<p>Attach metadata to ranges of text<br>
+<code>Links</code>, <code>mentions</code>, and <code>embedded</code> content can all be implemented using entities.<br>
+<a href="https://draftjs.org/docs/advanced-topics-entities">docs</a></p>
+<h3 id="properties">3 properties</h3>
+<ul>
+<li><strong>type</strong>: A string that indicates what kind of entity it is, e.g.  <code>'LINK'</code>,  <code>'MENTION'</code>,  <code>'PHOTO'</code>.</li>
+<li><strong>mutability</strong></li>
+<li><strong>data</strong>: An optional object containing metadata for the entity. For instance, a  <code>'LINK'</code>  entity might contain a  <code>data</code>  object that contains the  <code>href</code>  value for that link.</li>
+</ul>
+<h2 id="decorators">Decorators</h2>
+<p>Inline and block styles aren’t the only kind of rich styling that we might want to add to our editor. The Facebook comment input, for example, provides <code>blue background highlights</code> for <code>mentions</code> and <code>hashtags</code>.</p>
+<pre class=" language-ts"><code class="prism  language-ts"><span class="token keyword">const</span> compositeDecorator <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">CompositeDecorator</span><span class="token punctuation">(</span><span class="token punctuation">[</span>
+  <span class="token punctuation">{</span> strategy<span class="token punctuation">:</span> handleStrategy<span class="token punctuation">,</span> component<span class="token punctuation">:</span> HandleSpan<span class="token punctuation">,</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">{</span> strategy<span class="token punctuation">:</span> hashtagStrategy<span class="token punctuation">,</span> component<span class="token punctuation">:</span> HashtagSpan<span class="token punctuation">,</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+</code></pre>
+<pre class=" language-ts"><code class="prism  language-ts"><span class="token comment">// Note: these aren't very good regexes, don't use them!</span>
+<span class="token keyword">const</span> HANDLE_REGEX <span class="token operator">=</span> <span class="token regex">/\@[\w]+/g</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span> HASHTAG_REGEX <span class="token operator">=</span> <span class="token regex">/\#[\w\u0590-\u05ff]+/g</span><span class="token punctuation">;</span>
+
+<span class="token keyword">function</span> <span class="token function">findWithRegex</span><span class="token punctuation">(</span>regex<span class="token punctuation">,</span> contentBlock<span class="token punctuation">,</span> callback<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> text <span class="token operator">=</span> contentBlock<span class="token punctuation">.</span><span class="token function">getText</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword">let</span> matchArr<span class="token punctuation">,</span> start<span class="token punctuation">;</span>
+  <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>matchArr <span class="token operator">=</span> regex<span class="token punctuation">.</span><span class="token function">exec</span><span class="token punctuation">(</span>text<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">!==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    start <span class="token operator">=</span> matchArr<span class="token punctuation">.</span>index<span class="token punctuation">;</span>
+    <span class="token function">callback</span><span class="token punctuation">(</span>start<span class="token punctuation">,</span> start <span class="token operator">+</span> matchArr<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>length<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">handleStrategy</span><span class="token punctuation">(</span>contentBlock<span class="token punctuation">,</span> callback<span class="token punctuation">,</span> contentState<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">findWithRegex</span><span class="token punctuation">(</span>HANDLE_REGEX<span class="token punctuation">,</span> contentBlock<span class="token punctuation">,</span> callback<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">hashtagStrategy</span><span class="token punctuation">(</span>contentBlock<span class="token punctuation">,</span> callback<span class="token punctuation">,</span> contentState<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">findWithRegex</span><span class="token punctuation">(</span>HASHTAG_REGEX<span class="token punctuation">,</span> contentBlock<span class="token punctuation">,</span> callback<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+</code></pre>
+<p><a href="https://draftjs.org/docs/advanced-topics-decorators">docs</a></p>
+<h2 id="adapters">adapters</h2>
+<p>Adapter from HAL entities to Draftjs and back</p>
+<ul>
+<li>Sync back to HAL (Try to reuse same entities) because it loses the connection with entity server ids</li>
+</ul>
+<p>packages\text-editor\src\adapter\entities\from-text-editor<br>
+packages\text-editor\src\adapter\entities\to-text-editor</p>
+<h2 id="components">components</h2>
+<p><code>lerna run storybook --scope maggie-text-editor --stream</code></p>
+<h2 id="mocks"><strong>mocks</strong></h2>
+<p>mock data</p>
+
+    </div>
+  </div>
+  
+  <script src="./index.js"></script>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-137872597-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-137872597-1');
+  </script>
+</body>
+
+</html>
